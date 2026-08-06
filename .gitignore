@@ -1,0 +1,8 @@
+node_modules/
+*.db
+.env
+.wwebjs_auth/
+.wwebjs_cache/
+exports/
+qr.txt
+uploads/

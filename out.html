@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sakarya CRM - Müşteri Yönetim Paneli</title>
+  <meta name="description" content="Sakarya ilindeki işletmeleri yöneten CRM paneli">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg-primary: #06060a;
+      --bg-secondary: #0d0d14;
+      --bg-card: rgba(255, 255, 255, 0.025);
+      --bg-card-hover: rgba(255, 255, 255, 0.05);
+      --bg-sidebar: rgba(255, 255, 255, 0.015);
+      --border-color: rgba(255, 255, 255, 0.06);
+      --border-accent: rgba(99, 102, 241, 0.3);
+      --text-primary: #f0f0f5;
+      --text-secondary: #8b8b9e;
+      --text-muted: #55556a;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.15);
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.15);
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.15);
+      --rose: #f43f5e;
+      --rose-glow: rgba(244, 63, 94, 0.15);
+      --cyan: #06b6d4;
+      --cyan-glow: rgba(6, 182, 212, 0.15);
+      --purple: #a855f7;
+      --purple-glow: rgba(168, 85, 247, 0.15);
+      --radius: 12px;
+      --sidebar-w: 260px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 15% 0%, rgba(99, 102, 241, 0.07) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 100%, rgba(168, 85, 247, 0.05) 0%, transparent 55%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Layout ──────────────────────────── */
+    .app { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+    /* ── Sidebar ─────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 50;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-brand {
+      padding: 24px 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 25px rgba(99, 102, 241, 0.3);
+      flex-shrink: 0;
+    }
+
+    .brand-text h2 { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+    .brand-text span { font-size: 11px; color: var(--text-muted); font-weight: 400; }
+
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 14px; border-radius: 10px;
+      font-size: 13px; font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer; transition: all 0.2s ease;
+      border: 1px solid transparent;
+      text-decoration: none;
+      position: relative;
+    }
+
+    .nav-item:hover { background: rgba(255,255,255,0.03); color: var(--text-secondary); }
+
+    .nav-item.active {
+      background: var(--accent-glow);
+      color: var(--accent);
+      border-color: rgba(99, 102, 241, 0.15);
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: -12px;
+      top: 50%; transform: translateY(-50%);
+      width: 3px; height: 20px;
+      background: var(--accent);
+      border-radius: 0 3px 3px 0;
+    }
+
+    .nav-icon { font-size: 18px; width: 24px; text-align: center; }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--accent);
+      color: white;
+      font-size: 10px; font-weight: 700;
+      padding: 2px 7px; border-radius: 100px;
+      min-width: 20px; text-align: center;
+    }
+
+    .nav-badge.emerald { background: var(--emerald); }
+    .nav-badge.amber { background: var(--amber); }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border-color);
+      font-size: 11px; color: var(--text-muted);
+    }
+
+    /* ── Main Content ────────────────────── */
+    .main {
+      flex: 1;
+      margin-left: var(--sidebar-w);
+      min-height: 100vh;
+    }
+
+    .topbar {
+      padding: 18px 32px;
+      border-bottom: 1px solid var(--border-color);
+      background: rgba(6, 6, 10, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      position: sticky; top: 0; z-index: 40;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .topbar-title {
+      font-size: 20px; font-weight: 700; letter-spacing: -0.3px;
+    }
+
+    .topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+    .content { padding: 28px 32px; }
+
+    .page { display: none; animation: fadeIn 0.25s ease; }
+    .page.active { display: block; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── Buttons ──────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 8px;
+      font-size: 12px; font-weight: 600;
+      cursor: pointer; border: 1px solid var(--border-color);
+      background: var(--bg-card); color: var(--text-secondary);
+      font-family: inherit; transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .btn:hover { background: var(--bg-card-hover); color: var(--text-primary); border-color: var(--border-accent); }
+
+    .btn-primary { background: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 4px 14px rgba(99,102,241,0.25); }
+    .btn-primary:hover { background: #5558e6; box-shadow: 0 6px 20px rgba(99,102,241,0.35); transform: translateY(-1px); }
+
+    .btn-success { background: var(--emerald); color: white; border-color: var(--emerald); box-shadow: 0 4px 14px rgba(16,185,129,0.25); }
+    .btn-success:hover { background: #0ea572; transform: translateY(-1px); }
+
+    .btn-warning { background: var(--amber); color: #000; border-color: var(--amber); }
+
+    .btn-danger { background: var(--rose); color: white; border-color: var(--rose); }
+
+    .btn-sm { padding: 5px 10px; font-size: 11px; }
+    .btn-icon { padding: 7px 9px; }
+
+    /* ── Stat Cards ───────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: all 0.3s ease;
+      position: relative; overflow: hidden;
+    }
+
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      opacity: 0; transition: opacity 0.3s;
+    }
+
+    .stat-card:hover { background: var(--bg-card-hover); transform: translateY(-2px); box-shadow: 0 0 30px rgba(99,102,241,0.06); }
+    .stat-card:hover::after { opacity: 1; }
+
+    .stat-card[data-color="accent"]::after { background: linear-gradient(90deg, var(--accent), transparent); }
+    .stat-card[data-color="emerald"]::after { background: linear-gradient(90deg, var(--emerald), transparent); }
+    .stat-card[data-color="amber"]::after { background: linear-gradient(90deg, var(--amber), transparent); }
+    .stat-card[data-color="rose"]::after { background: linear-gradient(90deg, var(--rose), transparent); }
+    .stat-card[data-color="cyan"]::after { background: linear-gradient(90deg, var(--cyan), transparent); }
+    .stat-card[data-color="purple"]::after { background: linear-gradient(90deg, var(--purple), transparent); }
+
+    .stat-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .stat-value { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+
+    .stat-card[data-color="accent"] .stat-value { color: var(--accent); }
+    .stat-card[data-color="emerald"] .stat-value { color: var(--emerald); }
+    .stat-card[data-color="amber"] .stat-value { color: var(--amber); }
+    .stat-card[data-color="rose"] .stat-value { color: var(--rose); }
+    .stat-card[data-color="cyan"] .stat-value { color: var(--cyan); }
+    .stat-card[data-color="purple"] .stat-value { color: var(--purple); }
+
+    /* ── Charts ───────────────────────────── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 22px;
+    }
+
+    .card-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+
+    .bar-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .bar-label { font-size: 11px; color: var(--text-secondary); min-width: 85px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bar-track { flex: 1; height: 22px; background: rgba(255,255,255,0.025); border-radius: 5px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 5px; transition: width 0.6s cubic-bezier(0.22,1,0.36,1); }
+    .bar-count { font-size: 11px; font-weight: 600; color: var(--text-muted); min-width: 30px; }
+
+    /* ── Filters ──────────────────────────── */
+    .filters {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 16px; flex-wrap: wrap;
+    }
+
+    .filter-select, .filter-input {
+      padding: 8px 12px; border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card); color: var(--text-primary);
+      font-size: 12px; font-family: inherit;
+      outline: none; transition: border-color 0.2s;
+    }
+
+    .filter-select:focus, .filter-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+    .filter-input { min-width: 220px; }
+    .filter-select option { background: var(--bg-secondary); }
+
+    /* ── Table ────────────────────────────── */
+    .table-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius); overflow: hidden;
+    }
+
+    .table-scroll { overflow-x: auto; }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead { background: rgba(255,255,255,0.015); border-bottom: 1px solid var(--border-color); }
+
+    th {
+      padding: 12px 14px; text-align: left;
+      font-size: 10px; font-weight: 700;
+      color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: 0.8px; white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 14px; font-size: 12px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid rgba(255,255,255,0.02);
+      white-space: nowrap;
+    }
+
+    tr { cursor: pointer; transition: background 0.15s; }
+    tr:hover td { background: rgba(255,255,255,0.02); color: var(--text-primary); }
+    tr:last-child td { border-bottom: none; }
+
+    .table-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 14px; border-top: 1px solid var(--border-color);
+      font-size: 11px; color: var(--text-muted);
+    }
+
+    .pagination { display: flex; gap: 4px; }
+    .btn-page {
+      padding: 5px 10px; border-radius: 6px;
+      border: 1px solid var(--border-color); background: transparent;
+      color: var(--text-secondary); font-size: 11px; cursor: pointer;
+      font-family: inherit; transition: all 0.2s;
+    }
+    .btn-page:hover:not(:disabled) { background: var(--bg-card-hover); color: var(--text-primary); }
+    .btn-page:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* ── Badges ───────────────────────────── */
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 3px 9px; border-radius: 100px;
+      font-size: 10px; font-weight: 600;
+    }
+
+    .badge-new { background: var(--accent-glow); color: var(--accent); border: 1px solid rgba(99,102,241,0.2); }
+    .badge-phone { background: var(--emerald-glow); color: var(--emerald); border: 1px solid rgba(16,185,129,0.2); }
+    .badge-sent { background: var(--cyan-glow); color: var(--cyan); border: 1px solid rgba(6,182,212,0.2); }
+    .badge-nophone { background: var(--rose-glow); color: var(--rose); border: 1px solid rgba(244,63,94,0.2); }
+    .badge-unreg { background: var(--amber-glow); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
+    .badge-responded { background: var(--purple-glow); color: var(--purple); border: 1px solid rgba(168,85,247,0.2); }
+    .badge-customer { background: var(--emerald-glow); color: var(--emerald); border: 1px solid rgba(16,185,129,0.2); }
+    .badge-notinterested { background: var(--rose-glow); color: var(--rose); border: 1px solid rgba(244,63,94,0.15); }
+
+    .priority-bar { display: flex; align-items: center; gap: 5px; }
+    .priority-fill { height: 3px; border-radius: 2px; }
+    .p-high { background: var(--emerald); }
+    .p-med { background: var(--amber); }
+    .p-low { background: var(--rose); }
+
+    /* ── Drawer ───────────────────────────── */
+    .drawer-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+
+    .drawer {
+      position: fixed; top: 0; right: 0; bottom: 0;
+      width: 480px; max-width: 90vw;
+      background: var(--bg-secondary);
+      border-left: 1px solid var(--border-color);
+      z-index: 201;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+      display: flex; flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .drawer.open { transform: translateX(0); }
+
+    .drawer-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0;
+      background: var(--bg-secondary);
+      z-index: 5;
+    }
+
+    .drawer-header h3 { font-size: 16px; font-weight: 700; }
+
+    .drawer-close {
+      width: 32px; height: 32px; border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card); color: var(--text-secondary);
+      cursor: pointer; font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .drawer-close:hover { background: var(--rose-glow); color: var(--rose); border-color: var(--rose); }
+
+    .drawer-body { padding: 24px; flex: 1; }
+
+    .detail-section { margin-bottom: 24px; }
+    .detail-section h4 {
+      font-size: 11px; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.8px;
+      margin-bottom: 12px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--border-color);
+    }
+
+    .detail-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; font-size: 13px;
+    }
+    .detail-label { color: var(--text-muted); min-width: 100px; font-size: 12px; }
+    .detail-value { color: var(--text-primary); font-weight: 500; }
+
+    .note-textarea {
+      width: 100%; min-height: 80px; padding: 12px;
+      border-radius: 8px; border: 1px solid var(--border-color);
+      background: var(--bg-card); color: var(--text-primary);
+      font-size: 13px; font-family: inherit;
+      resize: vertical; outline: none; transition: border-color 0.2s;
+    }
+    .note-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+    .drawer-actions {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      padding: 16px 24px;
+      border-top: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+      position: sticky; bottom: 0;
+    }
+
+    /* ── Modal ────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(6px);
+      z-index: 300;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+
+    .modal {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      width: 540px; max-width: 90vw;
+      max-height: 85vh; overflow-y: auto;
+      transform: scale(0.95); transition: transform 0.25s cubic-bezier(0.22,1,0.36,1);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+    }
+    .modal-overlay.open .modal { transform: scale(1); }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-header h3 { font-size: 15px; font-weight: 700; }
+
+    .modal-body { padding: 24px; }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border-color);
+      display: flex; justify-content: flex-end; gap: 8px;
+    }
+
+    .template-card {
+      padding: 14px; border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      cursor: pointer; transition: all 0.2s;
+      margin-bottom: 8px;
+    }
+    .template-card:hover { border-color: var(--border-accent); background: var(--bg-card-hover); }
+    .template-card.selected { border-color: var(--accent); background: var(--accent-glow); }
+
+    .template-card h5 { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+    .template-card p { font-size: 11px; color: var(--text-muted); }
+
+    .msg-textarea {
+      width: 100%; min-height: 160px; padding: 14px;
+      border-radius: 10px; border: 1px solid var(--border-color);
+      background: var(--bg-card); color: var(--text-primary);
+      font-size: 13px; font-family: inherit; line-height: 1.5;
+      resize: vertical; outline: none; transition: border-color 0.2s;
+    }
+    .msg-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+    /* ── Responded Cards ─────────────────── */
+    .responded-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 14px;
+    }
+
+    .responded-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 18px;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .responded-card:hover { border-color: var(--border-accent); background: var(--bg-card-hover); transform: translateY(-1px); }
+
+    .rc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .rc-name { font-size: 14px; font-weight: 600; }
+    .rc-info { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
+    .rc-note { font-size: 12px; color: var(--text-secondary); background: rgba(255,255,255,0.02); padding: 8px 10px; border-radius: 6px; border-left: 2px solid var(--accent); margin-bottom: 10px; }
+    .rc-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    /* ── Toast ────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      padding: 12px 18px; border-radius: 10px;
+      font-size: 13px; font-weight: 500; color: white;
+      z-index: 1000;
+      transform: translateY(100px); opacity: 0;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast-success { background: rgba(16,185,129,0.9); border: 1px solid rgba(16,185,129,0.5); }
+    .toast-error { background: rgba(244,63,94,0.9); border: 1px solid rgba(244,63,94,0.5); }
+    .toast-info { background: rgba(99,102,241,0.9); border: 1px solid rgba(99,102,241,0.5); }
+
+    /* ── Scrollbar ────────────────────────── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.12); }
+
+    /* ── Responsive ──────────────────────── */
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.mobile-open { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .grid-2 { grid-template-columns: 1fr; }
+      .topbar { padding: 14px 16px; }
+      .content { padding: 16px; }
+      .drawer { width: 100%; }
+      .responded-grid { grid-template-columns: 1fr; }
+    }
+
+    @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); animation: pulse-dot 2s infinite; display: inline-block; margin-right: 6px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">🎯</div>
+        <div class="brand-text">
+          <h2>Sakarya CRM</h2>
+          <span>Müşteri Yönetimi</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')">
+          <span class="nav-icon">📊</span> Dashboard
+        </a>
+        <a class="nav-item" data-page="customers" onclick="navigate('customers')">
+          <span class="nav-icon">👥</span> Müşteriler
+          <span class="nav-badge" id="nav-total">0</span>
+        </a>
+        <a class="nav-item" data-page="responded" onclick="navigate('responded')">
+          <span class="nav-icon">💬</span> Dönüş Yapanlar
+          <span class="nav-badge emerald" id="nav-responded">0</span>
+        </a>
+        <a class="nav-item" data-page="messages" onclick="navigate('messages')">
+          <span class="nav-icon">📨</span> Mesajlar
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="live-dot"></div> Sistem Aktif
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-title" id="page-title">📊 Dashboard</div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary" onclick="startScraper()">🔍 Harita Tarama</button>
+          <button class="btn btn-success" onclick="startBulkSend()">📨 Toplu Mesaj</button>
+          <button class="btn btn-warning" onclick="openSysLogs()">💻 Sistem Logları</button>
+          <button class="btn" onclick="loadAll()">↻ Yenile</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- ═══ Dashboard Page ═══ -->
+        <div class="page active" id="page-dashboard">
+          <div class="stats-grid" id="stats-grid"></div>
+          <div class="grid-2" id="charts-area"></div>
+        </div>
+
+        <!-- ═══ Customers Page ═══ -->
+        <div class="page" id="page-customers">
+          <div class="filters" id="customers-filters"></div>
+          <div class="table-wrap">
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>İsim</th><th>Kategori</th><th>İlçe</th><th>Telefon</th>
+                    <th>Puan</th><th>Yorum</th><th>Öncelik</th><th>Durum</th><th>İşlem</th>
+                  </tr>
+                </thead>
+                <tbody id="customers-tbody">
+                  <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted)">Yükleniyor...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-footer">
+              <span id="cust-info">—</span>
+              <div class="pagination">
+                <button class="btn-page" id="cust-prev" onclick="custPrev()" disabled>← Önceki</button>
+                <button class="btn-page" id="cust-next" onclick="custNext()">Sonraki →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ Responded Page ═══ -->
+        <div class="page" id="page-responded">
+          <div class="filters" style="margin-bottom:20px">
+            <input type="text" class="filter-input" id="resp-search" placeholder="🔍 Dönüş yapanlarda ara..." oninput="debounce(loadResponded, 400)()">
+          </div>
+          <div class="responded-grid" id="responded-grid">
+            <div style="text-align:center;padding:60px;color:var(--text-muted);grid-column:1/-1">Yükleniyor...</div>
+          </div>
+        </div>
+
+        <!-- ═══ Messages Page ═══ -->
+        <div class="page" id="page-messages">
+          <div class="table-wrap">
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr><th>İsim</th><th>Telefon</th><th>Kategori</th><th>Tip</th><th>Tarih</th><th>Durum</th><th>Hata</th></tr>
+                </thead>
+                <tbody id="messages-tbody">
+                  <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted)">Yükleniyor...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Detail Drawer -->
+  <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+  <div class="drawer" id="customer-drawer">
+    <div class="drawer-header">
+      <h3 id="drawer-title">Müşteri Detayı</h3>
+      <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    </div>
+    <div class="drawer-body" id="drawer-body"></div>
+    <div class="drawer-actions" id="drawer-actions"></div>
+  </div>
+
+  <!-- QR Modal -->
+  <div class="modal-overlay" id="qr-modal-overlay" onclick="closeQrModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📱 WhatsApp QR Kodu</h3>
+        <button class="drawer-close" onclick="closeQrModal()">✕</button>
+      </div>
+      <div class="modal-body" style="text-align: center; padding: 20px;">
+        <p style="margin-bottom: 15px; color: var(--text-secondary);">WhatsApp'ı bağlamak için telefonunuzdan bu QR kodu tarayın.</p>
+        <div id="qr-container" style="background: white; padding: 15px; border-radius: 8px; display: inline-block; min-width: 256px; min-height: 256px;">
+          Yükleniyor...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Logs Modal -->
+  <div class="modal-overlay" id="sys-log-modal" onclick="closeSysLogs()">
+    <div class="modal" onclick="event.stopPropagation()" style="width: 800px; max-width: 95%;">
+      <div class="modal-header">
+        <h3>💻 Sistem Logları & Yönetimi</h3>
+        <button class="drawer-close" onclick="closeSysLogs()">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <!-- Scraper -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h4 style="color: var(--text-primary)">🔍 Harita Tarama</h4>
+            <button class="btn btn-sm btn-danger" id="btn-stop-scraper" onclick="stopProcess('scraper')" style="display:none">🛑 Durdur</button>
+          </div>
+          <div id="log-scraper" style="background: #000; color: #0f0; padding: 10px; font-family: monospace; font-size: 11px; height: 400px; overflow-y: auto; border-radius: 8px; white-space: pre-wrap;"></div>
+        </div>
+        <!-- Sender -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h4 style="color: var(--text-primary)">📨 Mesaj Gönderimi</h4>
+            <button class="btn btn-sm btn-danger" id="btn-stop-sender" onclick="stopProcess('sender')" style="display:none">🛑 Durdur</button>
+          </div>
+          <div id="log-sender" style="background: #000; color: #0f0; padding: 10px; font-family: monospace; font-size: 11px; height: 400px; overflow-y: auto; border-radius: 8px; white-space: pre-wrap;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message Compose Modal -->
+  <div class="modal-overlay" id="msg-modal-overlay" onclick="closeMsgModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📨 Mesaj Gönder</h3>
+        <button class="drawer-close" onclick="closeMsgModal()">✕</button>
+      </div>
+      <div class="modal-body" id="msg-modal-body"></div>
+      <div class="modal-footer" id="msg-modal-footer"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ══════════════════════════════════════════════════════
+    // ── STATE ────────────────────────────────────────────
+    // ══════════════════════════════════════════════════════
+    let state = {
+      page: 'dashboard',
+      custPage: 0, custSize: 50, custTotal: 0,
+      filters: { kategori: '', ilce: '', durum: '', sort: 'oncelik', search: '' },
+      stats: null,
+      currentCustomer: null,
+      templates: [],
+      searchTimer: null
+    };
+
+    // ══════════════════════════════════════════════════════
+    // ── NAVIGATION ───────────────────────────────────────
+    // ══════════════════════════════════════════════════════
+    const pageTitles = {
+      dashboard: '📊 Dashboard',
+      customers: '👥 Müşteriler',
+      responded: '💬 Dönüş Yapanlar',
+      messages: '📨 Mesaj Logları'
+    };
+
+    function navigate(page) {
+      state.page = page;
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.querySelector('[data-page="' + page + '"]').classList.add('active');
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + page).classList.add('active');
+      document.getElementById('page-title').textContent = pageTitles[page] || page;
+
+      if (page === 'customers') loadCustomers();
+      if (page === 'responded') loadResponded();
+      if (page === 'messages') loadMessages();
+    }
+
+    // ══════════════════════════════════════════════════════
+    // ── HELPERS ──────────────────────────────────────────
+    // ══════════════════════════════════════════════════════
+    function debounce(fn, ms) {
+      return () => { clearTimeout(state.searchTimer); state.searchTimer = setTimeout(fn, ms); };
+    }
+
+    function animNum(id, target) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const start = parseInt(el.textContent.replace(/\D/g, '')) || 0;
+      const dur = 500, st = performance.now();
+      function upd(t) {
+        const p = Math.min((t - st) / dur, 1);
+        const e = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(start + (target - start) * e).toLocaleString('tr-TR');
+        if (p < 1) requestAnimationFrame(upd);
+      }
+      requestAnimationFrame(upd);
+    }
+
+    function statusBadge(durum) {
+      const m = {
+        'yeni': '<span class="badge badge-new">Yeni</span>',
+        'telefon_var': '<span class="badge badge-phone">📱 Telefon Var</span>',
+        'telefon_yok': '<span class="badge badge-nophone">Telefon Yok</span>',
+        'mesaj_gonderildi': '<span class="badge badge-sent">✉️ Gönderildi</span>',
+        'numara_kayitsiz': '<span class="badge badge-unreg">⚠️ Kayıtsız</span>',
+        'donus_yapti': '<span class="badge badge-responded">💬 Dönüş Yaptı</span>',
+        'musteri_oldu': '<span class="badge badge-customer">🎉 Müşteri</span>',
+        'ilgilenmiyor': '<span class="badge badge-notinterested">İlgilenmiyor</span>'
+      };
+      return m[durum] || '<span class="badge badge-new">' + (durum || 'Yeni') + '</span>';
+    }
+
+    function toast(msg, type = 'success') {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'toast toast-' + type + ' show';
+      setTimeout(() => el.classList.remove('show'), 3500);
+    }
+
+    // ══════════════════════════════════════════════════════
+    // ── DASHBOARD ────────────────────────────────────────
+    // ══════════════════════════════════════════════════════
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/stats');
+        state.stats = await res.json();
+        const d = state.stats;
+
+        // Nav badges
+        document.getElementById('nav-total').textContent = d.toplam || 0;
+        document.getElementById('nav-responded').textContent = d.donus_yapan || 0;
+
+        // Stat cards
+        document.getElementById('stats-grid').innerHTML = [
+          { label: 'Toplam İşletme', value: d.toplam, color: 'accent', icon: '📋' },
+          { label: 'Telefonu Olan', value: d.telefonu_olan, color: 'emerald', icon: '📱' },
+          { label: 'Mesaj Gönderilen', value: d.mesaj_basarili, color: 'cyan', icon: '✉️' },
+          { label: 'Dönüş Yapan', value: d.donus_yapan, color: 'purple', icon: '💬' },
+          { label: 'Müşteri Olan', value: d.musteri_oldu, color: 'amber', icon: '🎉' },
+          { label: 'Başarısız Mesaj', value: d.mesaj_basarisiz, color: 'rose', icon: '❌' },
+        ].map(s =>
+          '<div class="stat-card" data-color="' + s.color + '">' +
+            '<div class="stat-label">' + s.icon + ' ' + s.label + '</div>' +
+            '<div class="stat-value">' + (s.value || 0).toLocaleString('tr-TR') + '</div>' +
+          '</div>'
+        ).join('');
+
+        // Charts
+        const colors = ['accent', 'emerald', 'amber', 'purple', 'cyan', 'rose'];
+        function barChart(items, labelKey, valueKey) {
+          if (!items || items.length === 0) return '<div style="color:var(--text-muted);font-size:12px;padding:20px;text-align:center">Veri yok</div>';
+          const mx = Math.max(...items.map(i => i[valueKey]));
+          return items.slice(0, 8).map((it, i) => {
+            const pct = mx > 0 ? (it[valueKey] / mx * 100) : 0;
+            const c = colors[i % colors.length];
+            return '<div class="bar-item">' +
+              '<span class="bar-label">' + (it[labelKey] || '?') + '</span>' +
+              '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;background:var(--' + c + ')"></div></div>' +
+              '<span class="bar-count">' + it[valueKey] + '</span></div>';
+          }).join('');
+        }
+
+        document.getElementById('charts-area').innerHTML =
+          '<div class="card"><div class="card-title">📂 Kategoriye Göre Dağılım</div>' + barChart(d.kategoriler, 'kategori', 'toplam') + '</div>' +
+          '<div class="card"><div class="card-title">📍 İlçeye Göre Dağılım</div>' + barChart(d.ilceler, 'ilce', 'toplam') + '</div>';
+
+        // Build filter dropdowns (for customers page)
+        buildFilters();
+      } catch (err) { console.error('Stats hatası:', err); }
+    }
+
+    function buildFilters() {
+      if (!state.stats) return;
+      const d = state.stats;
+      document.getElementById('customers-filters').innerHTML =
+        '<select class="filter-select" id="f-kat" onchange="state.filters.kategori=this.value;state.custPage=0;loadCustomers()">' +
+          '<option value="">Tüm Kategoriler</option>' +
+          (d.kategoriler || []).map(k => '<option value="' + k.kategori + '">' + k.kategori + ' (' + k.toplam + ')</option>').join('') +
+        '</select>' +
+        '<select class="filter-select" id="f-ilce" onchange="state.filters.ilce=this.value;state.custPage=0;loadCustomers()">' +
+          '<option value="">Tüm İlçeler</option>' +
+          (d.ilceler || []).map(d2 => '<option value="' + d2.ilce + '">' + (d2.ilce || '?') + ' (' + d2.toplam + ')</option>').join('') +
+        '</select>' +
+        '<select class="filter-select" id="f-durum" onchange="state.filters.durum=this.value;state.custPage=0;loadCustomers()">' +
+          '<option value="">Tüm Durumlar</option>' +
+          '<option value="yeni">Yeni</option>' +
+          '<option value="telefon_var">Telefon Var</option>' +
+          '<option value="telefon_yok">Telefon Yok</option>' +
+          '<option value="mesaj_gonderildi">Mesaj Gönderildi</option>' +
+          '<option value="donus_yapti">Dönüş Yaptı</option>' +
+          '<option value="musteri_oldu">Müşteri Oldu</option>' +
+          '<option value="numara_kayitsiz">Numara Kayıtsız</option>' +
+          '<option value="ilgilenmiyor">İlgilenmiyor</option>' +
+        '</select>' +
+        '<select class="filter-select" id="f-sort" onchange="state.filters.sort=this.value;state.custPage=0;loadCustomers()">' +
+          '<option value="oncelik">Öncelik Skoru</option>' +
+          '<option value="puan">Puan</option>' +
+          '<option value="yorum">Yorum Sayısı</option>' +
+          '<option value="isim">İsim</option>' +
+          '<option value="tarih">Ekleme Tarihi</option>' +
+        '</select>' +
+        '<input type="text" class="filter-input" id="f-search" placeholder="🔍 İsim, adres veya telefon ara..." oninput="state.filters.search=this.value;debounce(()=>{state.custPage=0;loadCustomers()},400)()">';
+    }
+
+    // ══════════════════════════════════════════════════════
+    // ── CUSTOMERS ────────────────────────────────────────
+    // ══════════════════════════════════════════════════════
+    async function loadCustomers() {
+      try {
+        const f = state.filters;
+        const params = new URLSearchParams({
+          kategori: f.kategori, ilce: f.ilce, durum: f.durum,
+          sort: f.sort, search: f.search,
+          limit: state.custSize, offset: state.custPage * state.custSize
+        });
+
+        const res = await fetch('/api/customers?' + params);
+        const { data, total } = await res.json();
+        state.custTotal = total;
+
+        const tbody = document.getElementById('customers-tbody');
+        if (!data || data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted)">Kayıt bulunamadı</td></tr>';
+          updateCustPag();
+          return;
+        }
+
+        tbody.innerHTML = data.map(c => {
+          const p = c.oncelik_skoru || 0;
+          const pClass = p >= 50 ? 'p-high' : p >= 30 ? 'p-med' : 'p-low';
+          const pW = Math.min(p, 80) / 80 * 50;
+
+          return '<tr onclick="openDrawer(' + c.id + ')">' +
+            '<td style="font-weight:600;color:var(--text-primary);max-width:200px;overflow:hidden;text-overflow:ellipsis">' + (c.isim || '—') + '</td>' +
+            '<td>' + (c.kategori || '—') + '</td>' +
+            '<td>' + (c.ilce || '—') + '</td>' +
+            '<td style="font-family:monospace;font-size:11px">' + (c.telefon || '—') + '</td>' +
+            '<td style="color:var(--amber)">' + (c.puan ? '⭐ ' + c.puan : '—') + '</td>' +
+            '<td>' + (c.yorum_sayisi || 0) + '</td>' +
+            '<td><div class="priority-bar"><div class="priority-fill ' + pClass + '" style="width:' + pW + 'px"></div><span style="font-size:10px;color:var(--text-muted)">' + p + '</span></div></td>' +
+            '<td>' + statusBadge(c.durum) + '</td>' +
+            '<td><button class="btn btn-sm btn-icon" onclick="event.stopPropagation();openDrawer(' + c.id + ')" title="Detay">👁</button></td>' +
+          '</tr>';
+        }).join('');
+
+        updateCustPag();
+      } catch (err) { console.error('Müşteri hatası:', err); }
+    }
+
+    function updateCustPag() {
+      const from = state.custTotal > 0 ? state.custPage * state.custSize + 1 : 0;
+      const to = Math.min((state.custPage + 1) * state.custSize, state.custTotal);
+      document.getElementById('cust-info').textContent = from + ' – ' + to + ' / ' + state.custTotal + ' kayıt';
+      document.getElementById('cust-prev').disabled = state.custPage === 0;
+      document.getElementById('cust-next').disabled = to >= state.custTotal;
+    }
+
+    function custPrev() { if (state.custPage > 0) { state.custPage--; loadCustomers(); } }
+    function custNext() { if ((state.custPage + 1) * state.custSize < state.custTotal) { state.custPage++; loadCustomers(); } }
+
+    // ══════════════════════════════════════════════════════
+    // ── CUSTOMER DRAWER ──────────────────────────────────
+    // ══════════════════════════════════════════════════════
+    async function openDrawer(id) {
+      try {
+        const res = await fetch('/api/customers/' + id);
+        const { customer, messages } = await res.json();
+        state.currentCustomer = customer;
+
+        document.getElementById('drawer-title').textContent = customer.isim || 'Müşteri Detayı';
+
+        // Body
+        document.getElementById('drawer-body').innerHTML =
+          '<div class="detail-section">' +
+            '<h4>📋 Genel Bilgiler</h4>' +
+            detailRow('Kategori', customer.kategori) +
+            detailRow('İlçe', customer.ilce) +
+            detailRow('Adres', customer.adres || '—') +
+            detailRow('Telefon', customer.telefon ? '<strong style="color:var(--emerald)">' + customer.telefon + '</strong>' : '<span style="color:var(--rose)">Yok</span>') +
+            detailRow('Puan', customer.puan ? '⭐ ' + customer.puan + ' (' + (customer.yorum_sayisi || 0) + ' yorum)' : '—') +
+            detailRow('Öncelik', '<strong>' + (customer.oncelik_skoru || 0) + '</strong> puan') +
+            detailRow('Durum', statusBadge(customer.durum)) +
+            detailRow('Eklenme', customer.ekleme_tarihi || '—') +
+            (customer.donus_tarihi ? detailRow('Dönüş Tarihi', customer.donus_tarihi) : '') +
+          '</div>' +
+
+          '<div class="detail-section">' +
+            '<h4>📝 Notlar</h4>' +
+            '<textarea class="note-textarea" id="note-text" placeholder="Müşteri hakkında not ekleyin...">' + (customer.notlar || '') + '</textarea>' +
+            '<div style="margin-top:8px;text-align:right"><button class="btn btn-sm btn-primary" onclick="saveNote()">💾 Kaydet</button></div>' +
+          '</div>' +
+
+          '<div class="detail-section">' +
+            '<h4>📨 Mesaj Geçmişi (' + messages.length + ')</h4>' +
+            (messages.length > 0 ?
+              messages.map(m =>
+                '<div style="padding:10px;margin-bottom:8px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px">' +
+                  '<div style="display:flex;justify-content:space-between;margin-bottom:4px">' +
+                    '<span style="font-size:11px;color:var(--text-muted)">' + (m.gonderim_zamani || '') + '</span>' +
+                    '<span>' + (m.durum === 'gonderildi' ? '<span class="badge badge-sent">✅</span>' : m.durum === 'beklemede' ? '<span class="badge badge-new">⏳</span>' : '<span class="badge badge-nophone">❌</span>') + '</span>' +
+                  '</div>' +
+                  '<div style="font-size:11px;color:var(--text-secondary);white-space:pre-wrap;max-height:80px;overflow:hidden">' + (m.mesaj || '—').substring(0, 200) + '</div>' +
+                  (m.mesaj_tipi && m.mesaj_tipi !== 'otomatik' ? '<div style="margin-top:4px"><span class="badge badge-responded">' + m.mesaj_tipi + '</span></div>' : '') +
+                '</div>'
+              ).join('')
+            : '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Henüz mesaj gönderilmemiş</div>') +
+          '</div>';
+
+        // Actions
+        const actions = [];
+        if (customer.telefon) {
+          actions.push('<button class="btn btn-primary" onclick="openMsgModal()">📨 Mesaj Gönder</button>');
+          actions.push('<button class="btn btn-success" onclick="openMsgModalWithTemplate()">💰 Fiyat Bilgisi</button>');
+        }
+        if (customer.durum === 'mesaj_gonderildi') {
+          actions.push('<button class="btn" style="background:var(--purple-glow);color:var(--purple);border-color:var(--purple)" onclick="markResponded(\'donus_yapti\')">💬 Dönüş Yaptı</button>');
+        }
+        if (customer.durum === 'donus_yapti') {
+          actions.push('<button class="btn btn-success" onclick="markResponded(\'musteri_oldu\')">🎉 Müşteri Oldu</button>');
+          actions.push('<button class="btn btn-danger btn-sm" onclick="markResponded(\'ilgilenmiyor\')">İlgilenmiyor</button>');
+        }
+
+        document.getElementById('drawer-actions').innerHTML = actions.join('');
+
+        // Open
+        document.getElementById('drawer-overlay').classList.add('open');
+        document.getElementById('customer-drawer').classList.add('open');
+      } catch (err) {
+        console.error('Drawer hatası:', err);
+        toast('Müşteri bilgisi yüklenemedi', 'error');
+      }
+    }
+
+    function detailRow(label, value) {
+      return '<div class="detail-row"><span class="detail-label">' + label + '</span><span class="detail-value">' + (value || '—') + '</span></div>';
+    }
+
+    function closeDrawer() {
+      document.getElementById('drawer-overlay').classList.remove('open');
+      document.getElementById('customer-drawer').classList.remove('open');
+    }
+
+    async function saveNote() {
+      if (!state.currentCustomer) return;
+      const not = document.getElementById('note-text').value;
+      try {
+        await fetch('/api/customers/' + state.currentCustomer.id + '/add-note', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ not })
+        });
+        toast('Not kaydedildi ✅');
+      } catch (err) { toast('Hata: ' + err.message, 'error'); }
+    }
+
+    async function markResponded(durum) {
+      if (!state.currentCustomer) return;
+      try {
+        await fetch('/api/customers/' + state.currentCustomer.id + '/mark-responded', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ durum })
+        });
+        const labels = { donus_yapti: 'Dönüş yaptı', musteri_oldu: 'Müşteri oldu', ilgilenmiyor: 'İlgilenmiyor' };
+        toast('Durum güncellendi: ' + (labels[durum] || durum) + ' ✅');
+        closeDrawer();
+        loadAll();
+      } catch (err) { toast('Hata: ' + err.message, 'error'); }
+    }
+
+    // ══════════════════════════════════════════════════════
+    // ── MESSAGE COMPOSE MODAL ────────────────────────────
+    // ══════════════════════════════════════════════════════
+    async function loadTemplates() {
+      try {
+        const res = await fetch('/api/templates');
+        state.templates = await res.json();
+      } catch { state.templates = []; }
+    }
+
+    function openMsgModal(preselect) {
+      if (!state.currentCustomer || !state.currentCustomer.telefon) {
+        toast('Bu müşterinin telefon numarası yok!', 'error');
+        return;
+      }
+
+      const c = state.currentCustomer;
+      const body = document.getElementById('msg-modal-body');
+
+      body.innerHTML =
+        '<div style="margin-bottom:16px">' +
+          '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:4px">Alıcı:</div>' +
+          '<div style="font-size:15px;font-weight:600">' + c.isim + ' <span style="color:var(--text-muted);font-size:12px">(' + c.telefon + ')</span></div>' +
+        '</div>' +
+        '<div style="margin-bottom:14px">' +
+          '<div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:8px">📋 ŞABLONLAR</div>' +
+          state.templates.map((t, i) =>
+            '<div class="template-card' + (preselect === t.id ? ' selected' : '') + '" onclick="selectTemplate(' + i + ')" id="tpl-' + i + '">' +
+              '<h5>' + t.name + ' — ' + t.price + '</h5>' +
+              '<p>Hazır fiyat teklifi şablonu</p>' +
+            '</div>'
+          ).join('') +
+          '<div class="template-card" onclick="clearTemplate()" id="tpl-custom">' +
+            '<h5>✍️ Özel Mesaj</h5>' +
+            '<p>Kendi mesajınızı yazın</p>' +
+          '</div>' +
+        '</div>' +
+        '<div>' +
+          '<div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:8px">MESAJ İÇERİĞİ</div>' +
+          '<textarea class="msg-textarea" id="msg-content" placeholder="Mesajınızı buraya yazın...">' +
+            (preselect ? (state.templates.find(t => t.id === preselect)?.message || '').replace(/{isim}/g, c.isim || 'Sayın İşletme') : '') +
+          '</textarea>' +
+        '</div>';
+
+      document.getElementById('msg-modal-footer').innerHTML =
+        '<button class="btn" onclick="closeMsgModal()">İptal</button>' +
+        '<button class="btn btn-primary" onclick="sendCustomMsg()">📨 Gönder</button>';
+
+      document.getElementById('msg-modal-overlay').classList.add('open');
+    }
+
+    function openMsgModalWithTemplate() {
+      openMsgModal('baslangic');
+    }
+
+    function selectTemplate(idx) {
+      document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById('tpl-' + idx).classList.add('selected');
+      const t = state.templates[idx];
+      const c = state.currentCustomer;
+      document.getElementById('msg-content').value = (t.message || '')
+        .replace(/{isim}/g, c.isim || 'Sayın İşletme')
+        .replace(/{kategori}/g, c.kategori || '')
+        .replace(/{ilce}/g, c.ilce || '');
+    }
+
+    function clearTemplate() {
+      document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById('tpl-custom').classList.add('selected');
+      document.getElementById('msg-content').value = '';
+      document.getElementById('msg-content').focus();
+    }
+
+    function closeMsgModal() {
+      document.getElementById('msg-modal-overlay').classList.remove('open');
+    }
+
+    async function sendCustomMsg() {
+      const msg = document.getElementById('msg-content').value.trim();
+      if (!msg) { toast('Mesaj boş olamaz!', 'error'); return; }
+      if (!state.currentCustomer) return;
+
+      const selectedTpl = document.querySelector('.template-card.selected');
+      const isTpl = selectedTpl && !selectedTpl.id.includes('custom');
+      const messageType = isTpl ? 'fiyat_bilgisi' : 'ozel';
+
+      try {
+        const res = await fetch('/api/send-custom-message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerId: state.currentCustomer.id,
+            message: msg,
+            messageType
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          toast('Mesaj kuyruğa eklendi! Gönderiliyor... 📨', 'info');
+          closeMsgModal();
+          closeDrawer();
+        } else {
+          toast('Hata: ' + (data.error || 'Bilinmeyen'), 'error');
+        }
+      } catch (err) { toast('Bağlantı hatası: ' + err.message, 'error'); }
+    }
+
+    // ══════════════════════════════════════════════════════
+    // ── RESPONDED PAGE ───────────────────────────────────
+    // ══════════════════════════════════════════════════════
+    async function loadResponded() {
+      try {
+        const search = document.getElementById('resp-search')?.value || '';
+        const res = await fetch('/api/customers/responded?search=' + encodeURIComponent(search));
+        const { data } = await res.json();
+
+        const grid = document.getElementById('responded-grid');
+
+        if (!data || data.length === 0) {
+          grid.innerHTML = '<div style="text-align:center;padding:60px;color:var(--text-muted);grid-column:1/-1">' +
+            '<div style="font-size:40px;margin-bottom:12px">💬</div>' +
+            '<div style="font-size:14px;font-weight:600;margin-bottom:6px">Henüz dönüş yapan müşteri yok</div>' +
+            '<div style="font-size:12px">Mesaj gönderilen müşterilerden dönüş geldiğinde buraya ekleyin</div></div>';
+          return;
+        }
+
+        grid.innerHTML = data.map(c =>
+          '<div class="responded-card" onclick="openDrawer(' + c.id + ')">' +
+            '<div class="rc-header">' +
+              '<span class="rc-name">' + (c.isim || '—') + '</span>' +
+              statusBadge(c.durum) +
+            '</div>' +
+            '<div class="rc-info">📂 ' + (c.kategori || '—') + ' · 📍 ' + (c.ilce || '—') + ' · 📱 ' + (c.telefon || '—') + '</div>' +
+            (c.notlar ? '<div class="rc-note">' + c.notlar.substring(0, 120) + '</div>' : '') +
+            '<div style="font-size:10px;color:var(--text-muted);margin-bottom:8px">Dönüş: ' + (c.donus_tarihi || '—') + '</div>' +
+            '<div class="rc-actions">' +
+              (c.telefon ? '<button class="btn btn-sm btn-primary" onclick="event.stopPropagation();quickMsg(' + c.id + ')">📨 Mesaj</button>' : '') +
+              (c.telefon ? '<button class="btn btn-sm btn-success" onclick="event.stopPropagation();quickPrice(' + c.id + ')">💰 Fiyat</button>' : '') +
+              (c.durum === 'donus_yapti' ? '<button class="btn btn-sm" style="background:var(--emerald-glow);color:var(--emerald);border-color:var(--emerald)" onclick="event.stopPropagation();quickStatus(' + c.id + ',\'musteri_oldu\')">🎉 Müşteri</button>' : '') +
+            '</div>' +
+          '</div>'
+        ).join('');
+      } catch (err) { console.error('Responded hatası:', err); }
+    }
+
+    async function quickMsg(id) {
+      await openDrawer(id);
+      setTimeout(() => openMsgModal(), 300);
+    }
+
+    async function quickPrice(id) {
+      await openDrawer(id);
+      setTimeout(() => openMsgModal('baslangic'), 300);
+    }
+
+    async function quickStatus(id, durum) {
+      try {
+        await fetch('/api/customers/' + id + '/mark-responded', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ durum })
+        });
+        toast('Durum güncellendi ✅');
+        loadResponded();
+        loadStats();
+      } catch (err) { toast('Hata', 'error'); }
+    }
+
+    // ══════════════════════════════════════════════════════
+    // ── MESSAGES ─────────────────────────────────────────
+    // ══════════════════════════════════════════════════════
+    async function loadMessages() {
+      try {
+        const res = await fetch('/api/messages?limit=100');
+        const { data } = await res.json();
+
+        const tbody = document.getElementById('messages-tbody');
+        if (!data || data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted)">Henüz mesaj gönderilmemiş</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.map(m => {
+          let sBadge = m.durum === 'gonderildi' ? '<span class="badge badge-sent">✅ Gönderildi</span>'
+            : m.durum === 'beklemede' ? '<span class="badge badge-new">⏳ Beklemede</span>'
+            : m.durum === 'numara_kayitsiz' ? '<span class="badge badge-unreg">⚠️ Kayıtsız</span>'
+            : '<span class="badge badge-nophone">❌ Hata</span>';
+
+          let tipBadge = '';
+          if (m.mesaj_tipi === 'fiyat_bilgisi') tipBadge = '<span class="badge badge-responded">💰 Fiyat</span>';
+          else if (m.mesaj_tipi === 'ozel') tipBadge = '<span class="badge badge-new">✍️ Özel</span>';
+          else tipBadge = '<span class="badge" style="background:rgba(255,255,255,0.03);color:var(--text-muted);border:1px solid var(--border-color)">🤖 Oto</span>';
+
+          return '<tr>' +
+            '<td style="font-weight:500;color:var(--text-primary)">' + (m.isim || '—') + '</td>' +
+            '<td style="font-family:monospace;font-size:11px">' + (m.telefon || '—') + '</td>' +
+            '<td>' + (m.kategori || '—') + '</td>' +
+            '<td>' + tipBadge + '</td>' +
+            '<td style="font-size:11px">' + (m.gonderim_zamani || '—') + '</td>' +
+            '<td>' + sBadge + '</td>' +
+            '<td style="font-size:10px;color:var(--text-muted);max-width:150px;overflow:hidden;text-overflow:ellipsis">' + (m.hata_mesaji || '—') + '</td>' +
+          '</tr>';
+        }).join('');
+      } catch (err) { console.error('Mesaj hatası:', err); }
+    }
+
+    // ══════════════════════════════════════════════════════
+    // ── SCRAPER & BULK SEND ───────────────────────────────
+    // ══════════════════════════════════════════════════════
+    async function startScraper() {
+      if (!confirm('Google Haritalar tarama işlemini başlatmak istiyor musunuz?\nArka planda Sakarya içi işletmeleri toplayacaktır.')) return;
+      try {
+        const res = await fetch('/api/run-scraper', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) toast('Tarama başlatıldı! Arka planda çalışıyor.', 'info');
+        else toast('Hata: ' + data.error, 'error');
+      } catch (err) { toast('Bağlantı hatası', 'error'); }
+    }
+
+    let qrPollInterval = null;
+    let qrCodeInstance = null;
+
+    function closeQrModal() {
+      document.getElementById('qr-modal-overlay').classList.remove('active');
+      if (qrPollInterval) clearInterval(qrPollInterval);
+    }
+
+    async function startBulkSend() {
+      if (!confirm('Toplu mesaj gönderimini başlatmak istiyor musunuz?')) return;
+      try {
+        const res = await fetch('/api/send-messages', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          toast('Toplu mesaj başlatılıyor...', 'info');
+          document.getElementById('qr-modal-overlay').classList.add('active');
+          document.getElementById('qr-container').innerHTML = 'QR kodu bekleniyor...';
+          
+          if (qrPollInterval) clearInterval(qrPollInterval);
+          qrPollInterval = setInterval(async () => {
+            try {
+              const qrRes = await fetch('/api/qr');
+              const qrData = await qrRes.json();
+              if (qrData.success && qrData.qr) {
+                if (qrData.qr === 'CONNECTED') {
+                  clearInterval(qrPollInterval);
+                  closeQrModal();
+                  toast('WhatsApp bağlandı, gönderim başladı!', 'success');
+                } else if (qrData.qr !== 'WAITING') {
+                  document.getElementById('qr-container').innerHTML = '';
+                  if (!qrCodeInstance) {
+                     qrCodeInstance = new QRCode(document.getElementById('qr-container'), {
+                       text: qrData.qr, width: 256, height: 256
+                     });
+                  } else {
+                     qrCodeInstance.clear();
+                     qrCodeInstance.makeCode(qrData.qr);
+                  }
+                }
+              }
+            } catch(e) {}
+          }, 2000);
+        } else {
+          toast('Hata: ' + data.error, 'error');
+        }
+      } catch (err) { toast('Bağlantı hatası', 'error'); }
+    }
+
+    let sysLogInterval = null;
+
+    function closeSysLogs() {
+      document.getElementById('sys-log-modal').classList.remove('active');
+      if (sysLogInterval) clearInterval(sysLogInterval);
+    }
+
+    function openSysLogs() {
+      document.getElementById('sys-log-modal').classList.add('active');
+      pollSysLogs();
+      if (sysLogInterval) clearInterval(sysLogInterval);
+      sysLogInterval = setInterval(pollSysLogs, 1500);
+    }
+
+    async function pollSysLogs() {
+      try {
+        const res = await fetch('/api/sys-logs');
+        const data = await res.json();
+        
+        document.getElementById('log-scraper').textContent = data.scraperLogs.join('
+');
+        document.getElementById('log-sender').textContent = data.senderLogs.join('
+');
+        
+        const scraperEl = document.getElementById('log-scraper');
+        scraperEl.scrollTop = scraperEl.scrollHeight;
+        const senderEl = document.getElementById('log-sender');
+        senderEl.scrollTop = senderEl.scrollHeight;
+
+        document.getElementById('btn-stop-scraper').style.display = data.scraperRunning ? 'block' : 'none';
+        document.getElementById('btn-stop-sender').style.display = data.senderRunning ? 'block' : 'none';
+      } catch (err) {}
+    }
+
+    async function stopProcess(type) {
+      if (!confirm(type + ' işlemini durdurmak istediğinize emin misiniz?')) return;
+      try {
+        const res = await fetch('/api/stop-' + type, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) toast('İşlem durduruldu', 'success');
+        else toast('Hata: ' + data.error, 'error');
+        pollSysLogs();
+      } catch(err) {}
+    }
+
+    // ══════════════════════════════════════════════════════
+    // ── INIT ─────────────────────────────────────────────
+    // ══════════════════════════════════════════════════════
+    async function loadAll() {
+      await loadStats();
+      await loadTemplates();
+      if (state.page === 'customers') loadCustomers();
+      if (state.page === 'responded') loadResponded();
+      if (state.page === 'messages') loadMessages();
+    }
+
+    loadAll();
+    setInterval(() => { loadStats(); }, 30000);
+  </script>
+</body>
+</html>
